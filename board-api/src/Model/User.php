@@ -1,10 +1,5 @@
 <?php
 
-###################
-# 使用者的處理函式
-# Jone 2022-07
-###################
-
 namespace App\Model;
 
 use App\Config\Database;
@@ -14,12 +9,6 @@ use PDOException;
 
 class User
 {
-    /**
-     * 連接資料庫
-     *
-     * @return  PDO         $db_connect  資料庫的連線
-     * @throws  Exception   $e           錯誤訊息
-     */
     public function dbConnect()
     {
         $db_type = Database::DATABASE_INFO['db_type'];
@@ -38,18 +27,6 @@ class User
         }
         return $db_connect;
     }
-    /**
-     * 尋找使用者
-     *
-     * @param   string      $user_id    使用者編號
-     *
-     * @throws  Exception   $e          回應錯誤訊息
-     *
-     * 有例外錯誤
-     * 回傳 "未知錯誤"
-     *
-     * @return  array       $user_info     回傳使用者資訊
-     */
     public function findUser(string $user_id)
     {
         $db_connect = $this->dbConnect();
@@ -79,15 +56,6 @@ class User
         }
         return $user_info;
     }
-    /**
-     * 檢查信箱、使用者是否已註冊過
-     *
-     * @param   string  $account    使用者名稱
-     * @param   string  $email      使用者信箱
-     * @return  array
-     * name_RESULT      為 0 時，代表沒有被註冊過，1 為有
-     * email_RESULT     為 0 時，代表沒有被註冊過，1 為有
-     */
     public function checkEmailName(string $account, string $email)
     {
         $db_connect = $this->dbConnect();
@@ -103,32 +71,6 @@ class User
         $statement->execute([$account, $email]);
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
-    /**
-     * 註冊使用者
-     *
-     * @param   string  $account        使用者名
-     * @param   string  $email          使用者信箱
-     * @param   string  $pass           使用者密碼
-     * @param   string  $pass_check     使用者密碼確認
-     *
-     * @throws  Exception   $e          回應錯誤訊息
-     *
-     * $account、$email、$pass、$pass_check 之一未填
-     * 回傳 "有欄位未填"
-     *
-     * $email FILTER_SANITIZE_EMAIL、FILTER_VALIDATE_EMAIL
-     * 為true，代表信箱格是不合規定，
-     * 回傳 "信箱格式錯誤" . "<br>" . "信箱範例：test@example.com"
-     *
-     * name_RESULT      為0 時，代表沒有被註冊過，1為有
-     * 回傳 "使用者名已被註冊"
-     *
-     * email_RESULT     為0 時，代表沒有被註冊過，1為有
-     * 回傳 "信箱已被註冊"
-     * 同時都有回傳 "使用者名和信箱已被註冊"
-     *
-     * @return  array       $return     將回傳的 API 回應資訊，回傳成功 *                                  或者失敗
-     */
     public function addUser(string $account, string $email, string $pass, string $pass_check)
     {
         $db_connect = $this->dbConnect();
@@ -191,33 +133,6 @@ class User
         http_response_code(201);
         return $return;
     }
-    /**
-     * 編輯使用者資料
-     *
-     * @param   string  $account        使用者名
-     * @param   string  $email          使用者信箱
-     * @param   string  $intro          使用者簡介
-     * @param   string  $pass           使用者密碼
-     * @param   string  $pass_check     使用者密碼確認
-     *
-     * @throws  Exception   $e          回應錯誤訊息
-     *
-     * $account、$email、$pass、$pass_check 之一未填
-     * 回傳 "有欄位未填"
-     *
-     * $email FILTER_SANITIZE_EMAIL、FILTER_VALIDATE_EMAIL
-     * 為true，代表信箱格是不合規定，
-     * 回傳 "信箱格式錯誤" . "<br>" . "信箱範例：test@example.com"
-     *
-     * name_RESULT      為0 時，代表沒有被註冊過，1為有
-     * 回傳 "使用者名已被註冊"
-     *
-     * email_RESULT     為0 時，代表沒有被註冊過，1為有
-     * 回傳 "信箱已被註冊"
-     * 同時都有回傳 "使用者名和信箱已被註冊"
-     *
-     * @return  array       $return     將回傳的 API 回應資訊，回傳成功 *                                  或者失敗
-     */
     public function editUser(
         string $account,
         string $email,
@@ -251,9 +166,7 @@ class User
                     $check_data[$key] = "";
                 }
             }
-            // return $check_data;
             $check = $this->checkEmailName($check_data['account'], $check_data['email']);
-            // return $check;
 
             if ($check['name_RESULT'] || $check['email_RESULT']) {
                 if (($check['name_RESULT'] && $check['email_RESULT'])) {
@@ -307,22 +220,6 @@ class User
         http_response_code(201);
         return $return;
     }
-    /**
-     * 使用者登入
-     *
-     * @param   string  $account        使用者名
-     * @param   string  $pass           使用者密碼
-     *
-     * @throws  Exception   $e          回應錯誤訊息
-     *
-     * $user_name、$user_email、$user_password 之一未填
-     * 回傳 "有欄位未填"
-     *
-     * 密碼或帳號錯誤
-     * 回傳 "帳號名或密碼錯誤"
-     *
-     * @return  array       $return     將回傳的 API 回應資訊，回傳成功 *                                  或者失敗
-     */
     public function userLogin(string $account, string $pass)
     {
         $db_connect = $this->dbConnect();
@@ -342,17 +239,8 @@ class User
                 $pass = password_verify($pass, $password_hash);
 
                 if ($pass) {
-                    // $md5_session_id = md5(session_id());
-                    // $_SESSION["X-Session-Hash"] = $md5_session_id;
                     $_COOKIE['X-User-Id'] = $data['id'];
-                    // $user_id = $data['id'];
                     $_SESSION["User-Id"] = $data['id'];
-                    // $_COOKIE['PHPSESSID'] = $session_id;
-                    // setcookie("Session-Hash",
-                    // $session_id, [
-                    //     'samesite' => 'None',
-                    //     'secure' => true,
-                    // ]);
                     $return = [
                         "account" => $account,
                         "user_id" => $data['id'],
@@ -361,9 +249,7 @@ class User
                         "event" => "登入訊息",
                         "status" => "success",
                         "content" => "登入成功，歡迎 $account 登入",
-                        // "X-Session-Hash" => $md5_session_id
                     ];
-                    //確認有沒有密碼錯誤
                 } else {
                     throw new Exception("帳號名或密碼錯誤");
                 }
