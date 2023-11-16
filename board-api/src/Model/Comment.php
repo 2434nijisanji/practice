@@ -26,7 +26,8 @@ class Comment
             die();
         }
         return $connect;
-    } function addComment($title, $content)
+    }
+    function addComment($title, $content)
     {
         $db = $this->dbConnect();
         $statement = $db->prepare("INSERT INTO `comments`(`title`,`content`,`user_id`) VALUES (?,?,?)");
